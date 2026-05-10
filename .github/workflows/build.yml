@@ -1,48 +1,32 @@
-﻿name: Build GoofyVoice
+name: Build
 
-on:
-  workflow_dispatch:
+on: workflow_dispatch
 
 jobs:
-  build-windows:
+  build:
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - uses: pnpm/action-setup@v2
-        with:
-          version: 9
-
-      - name: Install Rust
+      
+      - name: Setup
         shell: pwsh
         run: |
-          Invoke-WebRequest -Uri https://win.rustup.rs -OutFile rustup-init.exe
-          .\rustup-init.exe -y --default-toolchain stable
-
-      - name: Install Pake
-        shell: pwsh
-        run: |
-          $env:Path += ";$env:USERPROFILE\.cargo\bin"
+          irm https://win.rustup.rs -OutFile r.exe
+          .\r.exe -y
+          "$env:USERPROFILE\.cargo\bin" | Out-File $env:GITHUB_PATH -Append
           npm install -g pake-cli
-
-      - name: Build App
+      
+      - name: Build
         shell: pwsh
         run: |
-          $env:Path += ";$env:USERPROFILE\.cargo\bin"
-          pake https://goofyvoice.com --name GoofyVoice --width 1200 --height 800
-
-      - name: List output files
-        shell: pwsh
-        run: |
-          Get-ChildItem -Recurse -Filter "*.msi" -ErrorAction SilentlyContinue
-          Get-ChildItem -Recurse -Filter "*.exe" -ErrorAction SilentlyContinue | Select-Object -First 10
-
-      - name: Upload all bundles
+          "$env:USERPROFILE\.cargo\bin" | Out-File $env:GITHUB_PATH -Append
+          pake https://goofyvoice.com --name GoofyVoice
+      
+      - name: Upload
         uses: actions/upload-artifact@v4
         with:
-          name: GoofyVoice-windows
-          path: |
-            **/*.msi
-            **/*.exe
+          name: GoofyVoice
+          path: src-tauri/target/release/bundle/msi/*.msi
