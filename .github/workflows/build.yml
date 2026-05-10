@@ -8,16 +8,30 @@ jobs:
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - uses: pnpm/action-setup@v2
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
         with:
           version: 9
-      - uses: dtolnay/rust-action@stable
-      - run: npm install -g pake-cli
-      - run: pake https://goofyvoice.com --name GoofyVoice --width 1200 --height 800
-      - uses: actions/upload-artifact@v4
+
+      - name: Install Rust
+        uses: dtolnay/rust-action@master
+        with:
+          toolchain: stable
+
+      - name: Install Pake
+        run: npm install -g pake-cli
+
+      - name: Build App
+        run: pake https://goofyvoice.com --name GoofyVoice --width 1200 --height 800
+
+      - name: Upload MSI
+        uses: actions/upload-artifact@v4
         with:
           name: GoofyVoice-windows
           path: src-tauri/target/release/bundle/msi/*.msi
