@@ -25,8 +25,20 @@ jobs:
           "$env:USERPROFILE\.cargo\bin" | Out-File $env:GITHUB_PATH -Append
           pake https://goofyvoice.com --name GoofyVoice
       
+      - name: Find MSI
+        shell: pwsh
+        run: |
+          # Шукаємо MSI скрізь
+          $msi = Get-ChildItem -Path . -Recurse -Filter "*.msi" -ErrorAction SilentlyContinue | Select-Object -First 1
+          if ($msi) {
+            Write-Host "Found MSI at: $($msi.FullName)"
+            Copy-Item $msi.FullName "GoofyVoice.msi"
+          } else {
+            Get-ChildItem -Recurse | Where-Object { $_.Extension -match "msi|exe" } | Select-Object FullName
+          }
+      
       - name: Upload
         uses: actions/upload-artifact@v4
         with:
           name: GoofyVoice
-          path: src-tauri/target/release/bundle/msi/*.msi
+          path: "*.msi"
