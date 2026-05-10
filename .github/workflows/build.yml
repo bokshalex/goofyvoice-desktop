@@ -8,14 +8,10 @@ jobs:
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+      - uses: actions/setup-node@v4
         with:
           node-version: '22'
-
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v2
+      - uses: pnpm/action-setup@v2
         with:
           version: 9
 
@@ -24,9 +20,6 @@ jobs:
         run: |
           Invoke-WebRequest -Uri https://win.rustup.rs -OutFile rustup-init.exe
           .\rustup-init.exe -y --default-toolchain stable
-          $env:Path += ";$env:USERPROFILE\.cargo\bin"
-          rustc --version
-          cargo --version
 
       - name: Install Pake
         shell: pwsh
@@ -40,8 +33,16 @@ jobs:
           $env:Path += ";$env:USERPROFILE\.cargo\bin"
           pake https://goofyvoice.com --name GoofyVoice --width 1200 --height 800
 
-      - name: Upload MSI
+      - name: List output files
+        shell: pwsh
+        run: |
+          Get-ChildItem -Recurse -Filter "*.msi" -ErrorAction SilentlyContinue
+          Get-ChildItem -Recurse -Filter "*.exe" -ErrorAction SilentlyContinue | Select-Object -First 10
+
+      - name: Upload all bundles
         uses: actions/upload-artifact@v4
         with:
           name: GoofyVoice-windows
-          path: src-tauri/target/release/bundle/msi/*.msi
+          path: |
+            **/*.msi
+            **/*.exe
